@@ -112,9 +112,25 @@ td.team-names-col{min-width:160px;max-width:220px;white-space:normal;line-height
 footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:11px;color:var(--text3)}
 .footer-dot{width:4px;height:4px;border-radius:50%;background:var(--border2)}
 #noResults{display:none}
+
+/* ── custom tooltip ── */
+#tooltip{
+  position:fixed;z-index:999;
+  max-width:320px;
+  background:var(--text);color:#fff;
+  font-size:12px;line-height:1.6;
+  padding:10px 13px;
+  border-radius:var(--radius);
+  box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  pointer-events:none;
+  opacity:0;transition:opacity .15s;
+  white-space:pre-wrap;word-break:break-word;
+}
+#tooltip.show{opacity:1}
 </style>
 </head>
 <body>
+<div id="tooltip"></div>
 
 <header>
   <div class="logo">BIKE<span>/</span>INDUSTRY TRACKER</div>
@@ -359,7 +375,7 @@ function render(){
       <td class="team-names-col">${teamNamesHtml}</td>
       <td style="white-space:nowrap"><span class="coop-${coopV}">${coopV}</span></td>
       <td style="white-space:nowrap"><span class="status-${statusV}">${statusV}</span></td>
-      <td class="note-col" title="${v(r,'備註')}">${v(r,'備註')||'—'}</td>
+      <td class="note-col" data-tooltip="${v(r,'備註')}">${v(r,'備註')||'—'}</td>
     </tr>`;
   }).join('');
 
@@ -396,6 +412,36 @@ document.querySelectorAll('thead th[data-col]').forEach(th=>{
 });
 
 loadData();
+
+// ── tooltip ──
+const tip = document.getElementById('tooltip');
+let tipTarget = null;
+
+document.addEventListener('mouseover', e => {
+  const td = e.target.closest('[data-tooltip]');
+  if (!td) return;
+  const text = td.getAttribute('data-tooltip');
+  if (!text || text === '—') return;
+  tipTarget = td;
+  tip.textContent = text;
+  tip.classList.add('show');
+});
+
+document.addEventListener('mousemove', e => {
+  if (!tip.classList.contains('show')) return;
+  const x = e.clientX + 14;
+  const y = e.clientY + 14;
+  // 避免超出右邊界
+  const maxX = window.innerWidth - tip.offsetWidth - 16;
+  const maxY = window.innerHeight - tip.offsetHeight - 16;
+  tip.style.left = Math.min(x, maxX) + 'px';
+  tip.style.top  = Math.min(y, maxY) + 'px';
+});
+
+document.addEventListener('mouseout', e => {
+  const td = e.target.closest('[data-tooltip]');
+  if (td) tip.classList.remove('show');
+});
 </script>
 </body>
 </html>
