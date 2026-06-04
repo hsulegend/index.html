@@ -88,10 +88,10 @@ td.team-names-col{min-width:160px;max-width:220px;white-space:normal;line-height
 /* 車隊名稱 pill */
 .team-pill{display:inline-block;margin:1px 2px;padding:1px 7px;border-radius:20px;font-size:11px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(27,79,138,.15)}
 
-.coop-高{background:#D8F3DC;color:#1B5E3B;border-radius:var(--radius);padding:2px 8px;font-size:11px;font-weight:500;display:inline-block}
-.coop-中{background:#FEF3C7;color:#7D4E00;border-radius:var(--radius);padding:2px 8px;font-size:11px;font-weight:500;display:inline-block}
-.coop-低{background:#FEE2E2;color:#7F1D1D;border-radius:var(--radius);padding:2px 8px;font-size:11px;font-weight:500;display:inline-block}
-.coop-待評估{background:#F0EEE8;color:#6B6861;border-radius:var(--radius);padding:2px 8px;font-size:11px;display:inline-block}
+.pri-高{background:#D8F3DC;color:#1B5E3B;border-radius:var(--radius);padding:2px 8px;font-size:11px;font-weight:500;display:inline-block}
+.pri-中{background:#FEF3C7;color:#7D4E00;border-radius:var(--radius);padding:2px 8px;font-size:11px;font-weight:500;display:inline-block}
+.pri-低{background:#FEE2E2;color:#7F1D1D;border-radius:var(--radius);padding:2px 8px;font-size:11px;font-weight:500;display:inline-block}
+.pri-待評估{background:#F0EEE8;color:#6B6861;border-radius:var(--radius);padding:2px 8px;font-size:11px;display:inline-block}
 
 .status-接洽中{background:#DBE9FA;color:#1B4F8A;border-radius:var(--radius);padding:2px 8px;font-size:11px;display:inline-block}
 .status-待接洽{background:#F0EEE8;color:#6B6861;border-radius:var(--radius);padding:2px 8px;font-size:11px;display:inline-block}
@@ -151,7 +151,7 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
 
   <div class="stats-row">
     <div class="stat-card"><div class="stat-label">企業總數</div><div class="stat-num" id="s-total">—</div><div class="stat-sub">家</div></div>
-    <div class="stat-card"><div class="stat-label">合作可能：高</div><div class="stat-num" id="s-high">—</div><div class="stat-sub">家優先接洽</div></div>
+    <div class="stat-card"><div class="stat-label">接洽優序：高</div><div class="stat-num" id="s-high">—</div><div class="stat-sub">家優先接洽</div></div>
     <div class="stat-card"><div class="stat-label">上市櫃企業</div><div class="stat-num" id="s-listed">—</div><div class="stat-sub">家</div></div>
     <div class="stat-card"><div class="stat-label">贊助車隊</div><div class="stat-num" id="s-team">—</div><div class="stat-sub">家已有贊助</div></div>
     <div class="stat-card"><div class="stat-label">接洽中</div><div class="stat-num" id="s-active">—</div><div class="stat-sub">家進行中</div></div>
@@ -164,7 +164,7 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
     </div>
     <select id="filterCat"><option value="">全部類別</option></select>
     <select id="filterCoop">
-      <option value="">全部合作可能</option>
+      <option value="">全部接洽優序</option>
       <option>高</option><option>中</option><option>低</option><option>待評估</option>
     </select>
     <select id="filterStatus">
@@ -203,7 +203,7 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
             <th data-col="主要市場" style="width:88px">主要市場<span class="sort-icon">↕</span></th>
             <th data-col="贊助車隊" style="width:72px">贊助車隊<span class="sort-icon">↕</span></th>
             <th class="no-sort" style="width:220px">車隊名稱</th>
-            <th data-col="合作可能" style="width:80px">合作可能<span class="sort-icon">↕</span></th>
+            <th data-col="接洽優序" style="width:80px">接洽優序<span class="sort-icon">↕</span></th>
             <th data-col="接洽狀態" style="width:84px">接洽狀態<span class="sort-icon">↕</span></th>
             <th class="no-sort" style="width:180px">備註</th>
           </tr>
@@ -287,7 +287,7 @@ function getFiltered(){
       if(!hay.includes(q)) return false;
     }
     if(cat && v(r,'業務類別')!==cat) return false;
-    if(coop && v(r,'合作可能')!==coop) return false;
+    if(coop && v(r,'接洽優序')!==coop) return false;
     if(status && v(r,'接洽狀態')!==status) return false;
     if(listed && v(r,'上市櫃')!==listed) return false;
     if(team && v(r,'贊助車隊')!==team) return false;
@@ -304,7 +304,7 @@ function render(){
   });
 
   document.getElementById('s-total').textContent = allRows.length;
-  document.getElementById('s-high').textContent = allRows.filter(r=>v(r,'合作可能')==='高').length;
+  document.getElementById('s-high').textContent = allRows.filter(r=>v(r,'接洽優序')==='高').length;
   document.getElementById('s-listed').textContent = allRows.filter(r=>v(r,'上市櫃')==='是').length;
   document.getElementById('s-team').textContent = allRows.filter(r=>v(r,'贊助車隊')==='是').length;
   document.getElementById('s-active').textContent = allRows.filter(r=>v(r,'接洽狀態')==='接洽中').length;
@@ -354,7 +354,7 @@ function render(){
       ? teams.map(t=>`<span class="team-pill">${t}</span>`).join('')
       : '<span style="color:#9B978F">—</span>';
 
-    const coopV   = v(r,'合作可能')  || '待評估';
+    const coopV   = v(r,'接洽優序')  || '待評估';
     const statusV = v(r,'接洽狀態') || '待接洽';
 
     return `<tr>
@@ -373,7 +373,7 @@ function render(){
       <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'主要市場')||'—'}</td>
       <td style="text-align:center;white-space:nowrap">${teamHtml}</td>
       <td class="team-names-col">${teamNamesHtml}</td>
-      <td style="white-space:nowrap"><span class="coop-${coopV}">${coopV}</span></td>
+      <td style="white-space:nowrap"><span class="pri-${coopV}">${coopV}</span></td>
       <td style="white-space:nowrap"><span class="status-${statusV}">${statusV}</span></td>
       <td class="note-col" data-tooltip="${v(r,'備註')}">${v(r,'備註')||'—'}</td>
     </tr>`;
