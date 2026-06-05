@@ -54,7 +54,7 @@ select:focus{border-color:var(--border2)}
 
 .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
 .table-scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1700px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1950px}
 thead th{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none}
 thead th:hover{color:var(--text);background:#E8E5DD}
 thead th.sorted{color:var(--text)}
@@ -191,25 +191,27 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
             <th data-col="編號" style="width:48px">NO<span class="sort-icon">↕</span></th>
             <th data-col="公司名稱" style="width:160px">公司名稱<span class="sort-icon">↕</span></th>
             <th data-col="英文名稱" style="width:140px">英文名稱<span class="sort-icon">↕</span></th>
-            <th data-col="組織來源" style="width:96px">組織來源<span class="sort-icon">↕</span></th>
+            <th data-col="接洽優序" style="width:80px">接洽優序<span class="sort-icon">↕</span></th>
+            <th data-col="接洽狀態" style="width:84px">接洽狀態<span class="sort-icon">↕</span></th>
             <th data-col="業務類別" style="width:110px">業務類別<span class="sort-icon">↕</span></th>
             <th class="no-sort" style="width:200px">產品說明</th>
+            <th class="no-sort" style="width:160px">公司地址</th>
             <th data-col="上市櫃" style="width:68px">上市櫃<span class="sort-icon">↕</span></th>
             <th data-col="股票代號" style="width:72px">股票代號<span class="sort-icon">↕</span></th>
+            <th data-col="實收資本額" style="width:100px">實收資本額<span class="sort-icon">↕</span></th>
+            <th data-col="贊助車隊" style="width:72px">贊助車隊<span class="sort-icon">↕</span></th>
+            <th class="no-sort" style="width:220px">車隊名稱</th>
+            <th class="no-sort" style="width:180px">備註</th>
             <th data-col="財報年度" style="width:72px">財報年度<span class="sort-icon">↕</span></th>
             <th data-col="年營收(億)" style="width:90px">年營收(億)<span class="sort-icon">↕</span></th>
             <th data-col="稅後淨利(億)" style="width:90px">稅後淨利(億)<span class="sort-icon">↕</span></th>
             <th data-col="毛利率(%)" style="width:76px">毛利率(%)<span class="sort-icon">↕</span></th>
             <th data-col="主要市場" style="width:88px">主要市場<span class="sort-icon">↕</span></th>
-            <th data-col="贊助車隊" style="width:72px">贊助車隊<span class="sort-icon">↕</span></th>
-            <th class="no-sort" style="width:220px">車隊名稱</th>
-            <th data-col="接洽優序" style="width:80px">接洽優序<span class="sort-icon">↕</span></th>
-            <th data-col="接洽狀態" style="width:84px">接洽狀態<span class="sort-icon">↕</span></th>
-            <th class="no-sort" style="width:180px">備註</th>
+            <th data-col="組織來源" style="width:96px">組織來源<span class="sort-icon">↕</span></th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="18"><div class="state-box"><span class="spinner"></span><p style="margin-top:16px">載入資料中…</p></div></td></tr>
+          <tr><td colspan="20"><div class="state-box"><span class="spinner"></span><p style="margin-top:16px">載入資料中…</p></div></td></tr>
         </tbody>
       </table>
     </div>
@@ -283,7 +285,7 @@ function getFiltered(){
 
   return allRows.filter(r=>{
     if(q){
-      const hay = [v(r,'公司名稱'),v(r,'英文名稱'),v(r,'業務類別'),v(r,'產品說明'),v(r,'備註'),v(r,'車隊名稱')].join(' ').toLowerCase();
+      const hay = [v(r,'公司名稱'),v(r,'英文名稱'),v(r,'業務類別'),v(r,'產品說明'),v(r,'公司地址'),v(r,'備註'),v(r,'車隊名稱')].join(' ').toLowerCase();
       if(!hay.includes(q)) return false;
     }
     if(cat && v(r,'業務類別')!==cat) return false;
@@ -314,7 +316,7 @@ function render(){
   const noR = document.getElementById('noResults');
 
   if(!allRows.length){
-    tbody.innerHTML = '<tr><td colspan="18"><div class="state-box"><i class="ti ti-table-off"></i><p>試算表目前沒有資料，請先在 Google Sheet 填入內容</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="20"><div class="state-box"><i class="ti ti-table-off"></i><p>試算表目前沒有資料，請先在 Google Sheet 填入內容</p></div></td></tr>';
     noR.style.display = 'none';
     return;
   }
@@ -361,21 +363,23 @@ function render(){
       <td class="muted" style="font-family:'DM Mono',monospace;white-space:nowrap">${v(r,'編號')||''}</td>
       <td class="name-col" title="${v(r,'公司名稱')}">${v(r,'公司名稱')||'—'}</td>
       <td class="muted" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="${v(r,'英文名稱')}">${v(r,'英文名稱')||'—'}</td>
-      <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'組織來源')||'—'}</td>
+      <td style="white-space:nowrap"><span class="pri-${coopV}">${coopV}</span></td>
+      <td style="white-space:nowrap"><span class="status-${statusV}">${statusV}</span></td>
       <td style="white-space:nowrap"><span class="cat-tag">${v(r,'業務類別')||'—'}</span></td>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)" title="${v(r,'產品說明')}">${v(r,'產品說明')||'—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text2)" title="${v(r,'公司地址')}">${v(r,'公司地址')||'—'}</td>
       <td style="white-space:nowrap">${listedHtml}</td>
       <td style="white-space:nowrap">${tickerHtml}</td>
+      <td class="num">${v(r,'實收資本額') ? v(r,'實收資本額') : '<span style="color:#9B978F">—</span>'}</td>
+      <td style="text-align:center;white-space:nowrap">${teamHtml}</td>
+      <td class="team-names-col">${teamNamesHtml}</td>
+      <td class="note-col" data-tooltip="${v(r,'備註')}">${v(r,'備註')||'—'}</td>
       <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'財報年度')||'—'}</td>
       <td class="num">${rev}</td>
       <td class="num">${profit}</td>
       <td class="num">${margin}</td>
       <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'主要市場')||'—'}</td>
-      <td style="text-align:center;white-space:nowrap">${teamHtml}</td>
-      <td class="team-names-col">${teamNamesHtml}</td>
-      <td style="white-space:nowrap"><span class="pri-${coopV}">${coopV}</span></td>
-      <td style="white-space:nowrap"><span class="status-${statusV}">${statusV}</span></td>
-      <td class="note-col" data-tooltip="${v(r,'備註')}">${v(r,'備註')||'—'}</td>
+      <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'組織來源')||'—'}</td>
     </tr>`;
   }).join('');
 
@@ -394,7 +398,7 @@ function showError(msg){
     <span style="font-size:12px;opacity:.8">請確認 Apps Script 已部署，且存取權設為「所有人」。
     <a href="${SHEET_URL}" target="_blank">開啟試算表</a></span>
   </div>`;
-  document.getElementById('tableBody').innerHTML = '<tr><td colspan="18"><div class="state-box"><i class="ti ti-plug-off"></i><p>資料載入失敗，請點右上角「重新整理」再試</p></div></td></tr>';
+  document.getElementById('tableBody').innerHTML = '<tr><td colspan="20"><div class="state-box"><i class="ti ti-plug-off"></i><p>資料載入失敗，請點右上角「重新整理」再試</p></div></td></tr>';
 }
 
 document.querySelectorAll('thead th[data-col]').forEach(th=>{
