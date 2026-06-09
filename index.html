@@ -52,10 +52,14 @@ select:focus{border-color:var(--border2)}
 .count-badge{font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px 10px;font-family:'DM Mono',monospace}
 .spacer{flex:1}
 
-.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
-.table-scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1950px}
-thead th{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.table-scroll{overflow-x:auto;overflow-y:auto;flex:1;max-height:calc(100vh - 320px);min-height:300px;scrollbar-width:none}
+.table-scroll::-webkit-scrollbar{display:none}
+/* 底部橫向捲動條（鏡像） */
+.scroll-mirror-wrap{overflow-x:auto;overflow-y:hidden;border-top:1px solid var(--border)}
+.scroll-mirror-inner{height:1px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1600px}
+thead th{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:10}
 thead th:hover{color:var(--text);background:#E8E5DD}
 thead th.sorted{color:var(--text)}
 .sort-icon{margin-left:3px;opacity:.35;font-size:9px}
@@ -113,7 +117,28 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
 .footer-dot{width:4px;height:4px;border-radius:50%;background:var(--border2)}
 #noResults{display:none}
 
-/* ── custom tooltip ── */
+/* ── copyable cells ── */
+td.copyable{cursor:pointer;position:relative}
+td.copyable:hover::after{
+  content:'點擊複製';
+  position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+  background:var(--text2);color:#fff;
+  font-size:10px;padding:2px 6px;border-radius:4px;
+  white-space:nowrap;pointer-events:none;margin-bottom:4px;
+  opacity:.85;
+}
+
+/* ── copy toast ── */
+#copyToast{
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--text);color:#fff;
+  font-size:13px;padding:10px 18px;
+  border-radius:var(--radius);
+  box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;white-space:nowrap;z-index:1000;
+}
+#copyToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #tooltip{
   position:fixed;z-index:999;
   max-width:320px;
@@ -131,6 +156,7 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
 </head>
 <body>
 <div id="tooltip"></div>
+<div id="copyToast"><i class="ti ti-check" style="margin-right:5px"></i>已複製</div>
 
 <header>
   <div class="logo">BIKE<span>/</span>INDUSTRY TRACKER</div>
@@ -181,7 +207,7 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
   </div>
 
   <div class="table-wrap">
-    <div class="table-scroll">
+    <div class="table-scroll" id="tableScroll">
       <table id="mainTable">
         <thead>
           <tr>
@@ -189,7 +215,6 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
             <th data-col="公司名稱" style="width:160px">公司名稱<span class="sort-icon">↕</span></th>
             <th data-col="英文名稱" style="width:140px">英文名稱<span class="sort-icon">↕</span></th>
             <th data-col="接洽優序" style="width:80px">接洽優序<span class="sort-icon">↕</span></th>
-
             <th data-col="業務類別" style="width:110px">業務類別<span class="sort-icon">↕</span></th>
             <th class="no-sort" style="width:200px">產品說明</th>
             <th class="no-sort" style="width:160px">公司地址</th>
@@ -199,20 +224,19 @@ footer{margin-top:24px;padding:16px 0;border-top:1px solid var(--border);display
             <th data-col="贊助車隊" style="width:72px">贊助車隊<span class="sort-icon">↕</span></th>
             <th class="no-sort" style="width:220px">車隊名稱</th>
             <th class="no-sort" style="width:180px">備註</th>
-            <th data-col="財報年度" style="width:72px">財報年度<span class="sort-icon">↕</span></th>
-            <th data-col="年營收(億)" style="width:90px">年營收(億)<span class="sort-icon">↕</span></th>
-            <th data-col="稅後淨利(億)" style="width:90px">稅後淨利(億)<span class="sort-icon">↕</span></th>
-            <th data-col="毛利率(%)" style="width:76px">毛利率(%)<span class="sort-icon">↕</span></th>
             <th data-col="主要市場" style="width:88px">主要市場<span class="sort-icon">↕</span></th>
             <th data-col="組織來源" style="width:96px">組織來源<span class="sort-icon">↕</span></th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="19"><div class="state-box"><span class="spinner"></span><p style="margin-top:16px">載入資料中…</p></div></td></tr>
+          <tr><td colspan="15"><div class="state-box"><span class="spinner"></span><p style="margin-top:16px">載入資料中…</p></div></td></tr>
         </tbody>
       </table>
     </div>
     <div id="noResults" class="state-box"><i class="ti ti-search"></i><p>沒有符合條件的企業</p></div>
+    <div class="scroll-mirror-wrap" id="scrollMirror">
+      <div class="scroll-mirror-inner" id="scrollMirrorInner"></div>
+    </div>
   </div>
 
   <footer>
@@ -254,7 +278,8 @@ async function loadData(){
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if(!Array.isArray(data)) throw new Error('資料格式錯誤');
-    allRows = data;
+    // 過濾掉公司名稱為空的列（Sheet 空白列）
+    allRows = data.filter(r => String(r['公司名稱'] ?? '').trim() !== '');
     populateFilters();
     render();
     document.getElementById('lastUpdated').textContent = '更新於 ' + new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
@@ -311,7 +336,7 @@ function render(){
   const noR = document.getElementById('noResults');
 
   if(!allRows.length){
-    tbody.innerHTML = '<tr><td colspan="19"><div class="state-box"><i class="ti ti-table-off"></i><p>試算表目前沒有資料，請先在 Google Sheet 填入內容</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="15"><div class="state-box"><i class="ti ti-table-off"></i><p>試算表目前沒有資料，請先在 Google Sheet 填入內容</p></div></td></tr>';
     noR.style.display = 'none';
     return;
   }
@@ -323,11 +348,6 @@ function render(){
   noR.style.display = 'none';
 
   tbody.innerHTML = filtered.map(r=>{
-    const rev    = v(r,'年營收(億)')    ? v(r,'年營收(億)') + ' 億'  : '<span style="color:#9B978F">—</span>';
-    const profit = v(r,'稅後淨利(億)') ? v(r,'稅後淨利(億)') + ' 億' : '<span style="color:#9B978F">—</span>';
-    const rawM   = v(r,'毛利率(%)');
-    const margin = rawM ? (rawM.includes('%') ? rawM : rawM+'%') : '<span style="color:#9B978F">—</span>';
-
     // 上市櫃：只顯示是／否文字
     const listedVal = v(r,'上市櫃');
     const listedHtml = listedVal === '是'
@@ -351,29 +371,25 @@ function render(){
       ? teams.map(t=>`<span class="team-pill">${t}</span>`).join('')
       : '<span style="color:#9B978F">—</span>';
 
-    const coopV   = v(r,'接洽優序')  || '待評估';
+    const coopV = v(r,'接洽優序') || '待評估';
+    const cap   = v(r,'實收資本額');
 
     return `<tr>
       <td class="muted" style="font-family:'DM Mono',monospace;white-space:nowrap">${v(r,'編號')||''}</td>
-      <td class="name-col" title="${v(r,'公司名稱')}">${v(r,'公司名稱')||'—'}</td>
-      <td class="muted" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="${v(r,'英文名稱')}">${v(r,'英文名稱')||'—'}</td>
+      <td class="name-col copyable" data-copy="${v(r,'公司名稱')}" data-tooltip="${v(r,'公司名稱')}">${v(r,'公司名稱')||'—'}</td>
+      <td class="muted copyable" data-copy="${v(r,'英文名稱')}" data-tooltip="${v(r,'英文名稱')}" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">${v(r,'英文名稱')||'—'}</td>
       <td style="white-space:nowrap"><span class="pri-${coopV}">${coopV}</span></td>
-
-      <td style="white-space:nowrap"><span class="cat-tag">${v(r,'業務類別')||'—'}</span></td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)" title="${v(r,'產品說明')}">${v(r,'產品說明')||'—'}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text2)" title="${v(r,'公司地址')}">${v(r,'公司地址')||'—'}</td>
+      <td class="copyable" data-copy="${v(r,'業務類別')}" data-tooltip="${v(r,'業務類別')}" style="white-space:nowrap"><span class="cat-tag">${v(r,'業務類別')||'—'}</span></td>
+      <td class="copyable" data-copy="${v(r,'產品說明')}" data-tooltip="${v(r,'產品說明')}" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">${v(r,'產品說明')||'—'}</td>
+      <td class="copyable" data-copy="${v(r,'公司地址')}" data-tooltip="${v(r,'公司地址')}" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--text2)">${v(r,'公司地址')||'—'}</td>
       <td style="white-space:nowrap">${listedHtml}</td>
-      <td style="white-space:nowrap">${tickerHtml}</td>
-      <td class="num">${v(r,'實收資本額') ? v(r,'實收資本額') : '<span style="color:#9B978F">—</span>'}</td>
+      <td class="copyable" data-copy="${v(r,'股票代號')}" data-tooltip="${v(r,'股票代號')}" style="white-space:nowrap">${tickerHtml}</td>
+      <td class="num copyable" data-copy="${cap}" data-tooltip="${cap}">${cap ? cap : '<span style="color:#9B978F">—</span>'}</td>
       <td style="text-align:center;white-space:nowrap">${teamHtml}</td>
-      <td class="team-names-col">${teamNamesHtml}</td>
-      <td class="note-col" data-tooltip="${v(r,'備註')}">${v(r,'備註')||'—'}</td>
-      <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'財報年度')||'—'}</td>
-      <td class="num">${rev}</td>
-      <td class="num">${profit}</td>
-      <td class="num">${margin}</td>
-      <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'主要市場')||'—'}</td>
-      <td class="muted" style="font-size:11px;white-space:nowrap">${v(r,'組織來源')||'—'}</td>
+      <td class="team-names-col" data-tooltip="${v(r,'車隊名稱')}">${teamNamesHtml}</td>
+      <td class="note-col copyable" data-copy="${v(r,'備註')}" data-tooltip="${v(r,'備註')}">${v(r,'備註')||'—'}</td>
+      <td class="muted copyable" data-copy="${v(r,'主要市場')}" data-tooltip="${v(r,'主要市場')}" style="font-size:11px;white-space:nowrap">${v(r,'主要市場')||'—'}</td>
+      <td class="muted copyable" data-copy="${v(r,'組織來源')}" data-tooltip="${v(r,'組織來源')}" style="font-size:11px;white-space:nowrap">${v(r,'組織來源')||'—'}</td>
     </tr>`;
   }).join('');
 
@@ -381,6 +397,11 @@ function render(){
     th.classList.toggle('sorted', th.dataset.col===sortCol);
     const ic = th.querySelector('.sort-icon');
     if(ic) ic.textContent = th.dataset.col===sortCol ? (sortDir===1?' ↑':' ↓') : ' ↕';
+  });
+
+  requestAnimationFrame(()=>{
+    const tbl = document.getElementById('mainTable');
+    if(tbl && mirrorInner) mirrorInner.style.width = tbl.scrollWidth + 'px';
   });
 }
 
@@ -392,7 +413,7 @@ function showError(msg){
     <span style="font-size:12px;opacity:.8">請確認 Apps Script 已部署，且存取權設為「所有人」。
     <a href="${SHEET_URL}" target="_blank">開啟試算表</a></span>
   </div>`;
-  document.getElementById('tableBody').innerHTML = '<tr><td colspan="19"><div class="state-box"><i class="ti ti-plug-off"></i><p>資料載入失敗，請點右上角「重新整理」再試</p></div></td></tr>';
+  document.getElementById('tableBody').innerHTML = '<tr><td colspan="15"><div class="state-box"><i class="ti ti-plug-off"></i><p>資料載入失敗，請點右上角「重新整理」再試</p></div></td></tr>';
 }
 
 document.querySelectorAll('thead th[data-col]').forEach(th=>{
@@ -410,6 +431,39 @@ document.querySelectorAll('thead th[data-col]').forEach(th=>{
 });
 
 loadData();
+
+// ── 鏡像橫向捲動條同步 ──
+const tableScroll  = document.getElementById('tableScroll');
+const scrollMirror = document.getElementById('scrollMirror');
+const mirrorInner  = document.getElementById('scrollMirrorInner');
+
+function syncMirrorWidth(){
+  const tbl = document.getElementById('mainTable');
+  if(tbl) mirrorInner.style.width = tbl.scrollWidth + 'px';
+}
+
+tableScroll.addEventListener('scroll', () => {
+  scrollMirror.scrollLeft = tableScroll.scrollLeft;
+});
+scrollMirror.addEventListener('scroll', () => {
+  tableScroll.scrollLeft = scrollMirror.scrollLeft;
+});
+
+// ── 點擊複製 ──
+const toast = document.getElementById('copyToast');
+let toastTimer = null;
+
+document.addEventListener('click', e => {
+  const td = e.target.closest('td.copyable');
+  if (!td) return;
+  const text = td.getAttribute('data-copy');
+  if (!text || text === '—' || text === '') return;
+  navigator.clipboard.writeText(text).then(() => {
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  });
+});
 
 // ── tooltip ──
 const tip = document.getElementById('tooltip');
